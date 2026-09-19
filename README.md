@@ -75,3 +75,4 @@ Without keys, demo couriers (Delhivery, Blue Dart, DTDC, Xpressbees) are shown.
 ## Supabase (optional)
 
 Run `supabase/schema.sql`. Products, orders and contact messages sync when URL + anon key are set.
+>>>>>>> origin/main
