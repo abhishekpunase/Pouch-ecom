@@ -35,6 +35,7 @@ import AdminWebsite from '@/pages/admin/AdminWebsite'
 import AdminPayments from '@/pages/admin/AdminPayments'
 import AdminLegal from '@/pages/admin/AdminLegal'
 import AdminSettings from '@/pages/admin/AdminSettings'
+import AdminCoupons from '@/pages/admin/AdminCoupons'
 import AdminSupport from '@/pages/admin/AdminSupport'
 import AdminSupportDetail from '@/pages/admin/AdminSupportDetail'
 
@@ -63,6 +64,7 @@ export default function App() {
           <Route path="payments" element={<AdminPayments />} />
           <Route path="legal" element={<AdminLegal />} />
           <Route path="settings" element={<AdminSettings />} />
+          <Route path="coupons" element={<AdminCoupons />} />
           <Route path="support" element={<AdminSupport />} />
           <Route path="support/:id" element={<AdminSupportDetail />} />
         </Route>

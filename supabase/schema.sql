@@ -37,6 +37,8 @@ create table if not exists public.orders (
   email text,
   items jsonb not null,
   subtotal numeric not null,
+  discount numeric default 0,
+  coupon_code text,
   shipping numeric not null,
   total numeric not null,
   status text default 'confirmed',
@@ -54,6 +56,9 @@ create table if not exists public.orders (
   shipping_address jsonb,
   created_at timestamptz default now()
 );
+
+alter table public.orders add column if not exists discount numeric default 0;
+alter table public.orders add column if not exists coupon_code text;
 
 create table if not exists public.contact_messages (
   id uuid primary key default gen_random_uuid(),

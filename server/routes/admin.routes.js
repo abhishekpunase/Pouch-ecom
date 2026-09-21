@@ -1,8 +1,18 @@
 import { Router } from 'express'
-import { ADMIN_EMAIL, ADMIN_PASSWORD, getEnvSnapshot, updateEnvFile } from '../config/env.js'
+import { randomUUID } from 'node:crypto'
+import { ADMIN_EMAIL, ADMIN_PASSWORD, COUPONS, getEnvSnapshot, updateEnvFile } from '../config/env.js'
 import { clearLoginHits, loginRateLimited, requireAdmin, signAdminToken, timingEqual, verifyAdminToken } from '../middleware/auth.js'
 
 const router = Router()
+
+function readCoupons() {
+  try {
+    const parsed = JSON.parse(COUPONS || '[]')
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
 
 router.get('/settings', requireAdmin, (_req, res) => {
   res.json(getEnvSnapshot())
@@ -35,6 +45,58 @@ router.post('/settings', requireAdmin, (req, res) => {
     res.json({ ok: true, settings: saved })
   } catch (error) {
     res.status(500).json({ error: error.message || 'Could not update settings' })
+  }
+})
+
+router.get('/coupons', requireAdmin, (_req, res) => {
+  res.json({ coupons: readCoupons() })
+})
+
+router.post('/coupons', requireAdmin, (req, res) => {
+  const body = req.body || {}
+  const code = String(body.code || '').trim().toUpperCase()
+  const type = body.type === 'fixed' ? 'fixed' : 'percent'
+  const value = Number(body.value)
+  const minSubtotal = Math.max(0, Number(body.minSubtotal || 0))
+  const expiryDate = body.expiresAt ? new Date(body.expiresAt) : null
+
+  if (!/^[A-Z0-9_-]{3,32}$/.test(code)) return res.status(400).json({ error: 'Code must be 3-32 letters, numbers, _ or -' })
+  if (!Number.isFinite(value) || value <= 0 || (type === 'percent' && value > 100)) {
+    return res.status(400).json({ error: type === 'percent' ? 'Percentage must be between 1 and 100' : 'Discount must be greater than 0' })
+  }
+  if (expiryDate && Number.isNaN(expiryDate.getTime())) return res.status(400).json({ error: 'Expiry date is invalid' })
+
+  const coupons = readCoupons()
+  const existing = coupons.find((coupon) => coupon.id === body.id)
+  const duplicate = coupons.find((coupon) => coupon.code === code && coupon.id !== body.id)
+  if (duplicate) return res.status(400).json({ error: 'That coupon code already exists' })
+
+  const coupon = {
+    id: existing?.id || randomUUID(),
+    code,
+    type,
+    value: Math.round(value * 100) / 100,
+    minSubtotal: Math.round(minSubtotal * 100) / 100,
+    expiresAt: expiryDate ? expiryDate.toISOString() : '',
+    active: body.active !== false,
+  }
+  const next = existing ? coupons.map((item) => (item.id === coupon.id ? coupon : item)) : [coupon, ...coupons]
+
+  try {
+    updateEnvFile({ COUPONS: JSON.stringify(next) })
+    res.json({ ok: true, coupon })
+  } catch (error) {
+    res.status(500).json({ error: error.message || 'Could not save coupon' })
+  }
+})
+
+router.delete('/coupons/:id', requireAdmin, (req, res) => {
+  const next = readCoupons().filter((coupon) => coupon.id !== req.params.id)
+  try {
+    updateEnvFile({ COUPONS: JSON.stringify(next) })
+    res.json({ ok: true })
+  } catch (error) {
+    res.status(500).json({ error: error.message || 'Could not delete coupon' })
   }
 })
 

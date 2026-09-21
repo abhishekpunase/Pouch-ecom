@@ -16,6 +16,7 @@ import {
   Package,
   Settings,
   Truck,
+  TicketPercent,
   Users,
   Wallet,
   X,
@@ -54,6 +55,7 @@ const links = [
   { to: '/admin/shipping', label: 'Shipping', icon: Truck },
   { to: '/admin/website', label: 'Website', icon: Globe },
   { to: '/admin/payments', label: 'Payments', icon: Wallet },
+  { to: '/admin/coupons', label: 'Coupons', icon: TicketPercent },
   { to: '/admin/legal', label: 'Legal', icon: FileText },
   { to: '/admin/settings', label: 'Settings', icon: Settings },
 ]

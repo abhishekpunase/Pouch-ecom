@@ -68,6 +68,37 @@ export async function updateAdminSettings(payload) {
   return readJson(r)
 }
 
+export async function fetchAdminCoupons() {
+  const r = await fetch(`${API}/admin/coupons`, { headers: adminAuthHeaders() })
+  return readJson(r)
+}
+
+export async function saveAdminCoupon(coupon) {
+  const r = await fetch(`${API}/admin/coupons`, {
+    method: 'POST',
+    headers: adminAuthHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(coupon),
+  })
+  return readJson(r)
+}
+
+export async function deleteAdminCoupon(id) {
+  const r = await fetch(`${API}/admin/coupons/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: adminAuthHeaders(),
+  })
+  return readJson(r)
+}
+
+export async function applyCoupon(code, subtotal) {
+  const r = await fetch(`${API}/coupons/apply`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, subtotal }),
+  })
+  return readJson(r)
+}
+
 export async function adminSupportRequest(path = '', options = {}) {
   const r = await fetch(`${API}/admin/support${path}`, {
     ...options,

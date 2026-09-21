@@ -1,20 +1,21 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { SITE, formatInr } from '@/data/catalog'
+import { GST_RATE, SITE, formatInr } from '@/data/catalog'
 import { useCart } from '@/context/CartContext'
 import { useAuth } from '@/context/AuthContext'
 import { placeOrder } from '@/services/supabase'
 import {
   cartWeight,
   createRazorpayOrder,
+  applyCoupon,
   fetchShipRates,
   loadRazorpayScript,
   verifyRazorpayPayment,
 } from '@/services/api'
 
 export default function Checkout() {
-  const { items, subtotal, gst, shipping, total, quote, setShippingQuote, clear } = useCart()
+  const { items, subtotal, shipping, quote, setShippingQuote, clear } = useCart()
   const { user } = useAuth()
   const navigate = useNavigate()
   const [placing, setPlacing] = useState(false)
@@ -22,6 +23,9 @@ export default function Checkout() {
   const [rates, setRates] = useState([])
   const [ratesMeta, setRatesMeta] = useState(null)
   const [loadingRates, setLoadingRates] = useState(false)
+  const [couponCode, setCouponCode] = useState('')
+  const [coupon, setCoupon] = useState(null)
+  const [couponError, setCouponError] = useState('')
   const meta = user?.user_metadata || {}
   const saved = (meta.addresses || []).find((a) => a.isDefault) || meta.addresses?.[0]
   const [form, setForm] = useState({
@@ -104,12 +108,12 @@ export default function Checkout() {
     })
   }
 
-  async function payWithRazorpay() {
+  async function payWithRazorpay(amount) {
     const loaded = await loadRazorpayScript()
     if (!loaded || !window.Razorpay) {
       throw new Error('Could not load Razorpay. Check your internet connection and try again.')
     }
-    const order = await createRazorpayOrder(total, `pi_${Date.now()}`)
+    const order = await createRazorpayOrder(amount, `pi_${Date.now()}`)
     const response = await openRazorpay(order)
     // Never trust the popup alone: the server checks signature + payment status with Razorpay.
     const check = await verifyRazorpayPayment({
@@ -131,8 +135,8 @@ export default function Checkout() {
         payment_status: 'cod',
         status: 'confirmed',
       }
-      if (form.payment === 'razorpay' && total > 0) {
-        const rz = await payWithRazorpay()
+      if (form.payment === 'razorpay' && totalAmount > 0) {
+        const rz = await payWithRazorpay(totalAmount)
         payment = {
           payment_method: 'razorpay',
           payment_status: 'paid',
@@ -148,9 +152,11 @@ export default function Checkout() {
         email: form.email,
         items,
         subtotal,
-        gst,
+        discount,
+        coupon_code: coupon?.code || null,
+        gst: discountedGst,
         shipping,
-        total,
+        total: totalAmount,
         courier_name: quote?.courier_name,
         courier_company_id: quote?.courier_company_id,
         weight: cartWeight(items),
@@ -187,7 +193,24 @@ export default function Checkout() {
     )
   }
 
+  const discount = Math.min(subtotal, Number(coupon?.discount || 0))
+  const discountedSubtotal = Math.max(0, subtotal - discount)
+  const discountedGst = Math.round(discountedSubtotal * GST_RATE)
+  const totalAmount = discountedSubtotal + discountedGst + shipping
   const freeShip = subtotal >= SITE.freeShippingFrom || subtotal === 0
+
+  async function onApplyCoupon(event) {
+    event.preventDefault()
+    setCouponError('')
+    setCoupon(null)
+    try {
+      const result = await applyCoupon(couponCode, subtotal)
+      setCoupon(result)
+      toast.success(`Coupon applied: ${formatInr(result.discount)} off`)
+    } catch (error) {
+      setCouponError(error.message || 'Could not apply coupon')
+    }
+  }
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-10">
@@ -274,16 +297,35 @@ export default function Checkout() {
             </div>
             <div className="flex justify-between">
               <span>GST (18%)</span>
-              <span>{gst ? formatInr(gst) : '—'}</span>
+              <span>{discountedGst ? formatInr(discountedGst) : '—'}</span>
             </div>
+            {coupon && (
+              <div className="flex justify-between text-emerald-700">
+                <span>Coupon ({coupon.code})</span>
+                <span>-{formatInr(discount)}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span>Shipping</span>
               <span>{shipping === 0 ? 'Free' : formatInr(shipping)}</span>
             </div>
           </div>
+          <form onSubmit={onApplyCoupon} className="mt-4 flex gap-2">
+            <input
+              value={couponCode}
+              onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
+              placeholder="Coupon code"
+              className="min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm uppercase"
+              aria-label="Coupon code"
+            />
+            <button type="submit" disabled={!couponCode.trim()} className="rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold disabled:opacity-50">
+              Apply
+            </button>
+          </form>
+          {couponError && <p className="mt-2 text-xs text-rose-600">{couponError}</p>}
           <div className="mt-3 flex justify-between border-t pt-3 font-bold">
             <span>Total</span>
-            <span>{total === 0 ? 'Free' : formatInr(total)}</span>
+            <span>{totalAmount === 0 ? 'Free' : formatInr(totalAmount)}</span>
           </div>
           <p className="mt-1 text-xs text-slate-500">
             Shipping: {shipping === 0 ? 'Free' : formatInr(shipping)}
@@ -297,7 +339,7 @@ export default function Checkout() {
             </div>
           )}
           <button type="submit" disabled={placing} className="gradient-btn mt-6 w-full rounded-full py-3 text-sm font-semibold text-white disabled:opacity-60">
-            {placing ? 'Processing…' : payError && form.payment === 'razorpay' ? 'Retry payment' : form.payment === 'razorpay' && total > 0 ? 'Pay with Razorpay' : 'Place order'}
+            {placing ? 'Processing…' : payError && form.payment === 'razorpay' ? 'Retry payment' : form.payment === 'razorpay' && totalAmount > 0 ? 'Pay with Razorpay' : 'Place order'}
           </button>
         </aside>
       </form>

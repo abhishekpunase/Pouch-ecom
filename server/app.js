@@ -7,6 +7,7 @@ import paymentsRoutes from './routes/payments.routes.js'
 import shippingRoutes from './routes/shipping.routes.js'
 import uploadRoutes from './routes/upload.routes.js'
 import supportRoutes from './routes/support.routes.js'
+import couponsRoutes from './routes/coupons.routes.js'
 
 export function createApp() {
   const app = express()
@@ -17,6 +18,7 @@ export function createApp() {
   app.use('/api', healthRoutes)
   app.use('/api/admin', adminRoutes)
   app.use('/api/admin/support', supportRoutes)
+  app.use('/api/coupons', couponsRoutes)
   app.use('/api/upload', uploadRoutes)
   app.use('/api/shiprocket', shippingRoutes)
   app.use('/api', paymentsRoutes)

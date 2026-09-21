@@ -14,6 +14,7 @@ export default defineConfig({
     },
   },
   server: {
+    host: true,
     proxy: {
       '/api': 'http://127.0.0.1:8787',
       '/uploads': 'http://127.0.0.1:8787',
