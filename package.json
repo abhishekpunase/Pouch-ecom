@@ -13,6 +13,7 @@
     "postinstall": "prisma skills sync || exit 0"
   },
   "dependencies": {
+    "@prisma/client": "^7.10.0",
     "@supabase/server": "^1.7.0",
     "@supabase/supabase-js": "^2.116.0",
     "concurrently": "^10.0.5",
@@ -33,7 +34,7 @@
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
     "oxlint": "^1.79.0",
-    "prisma": "^8.0.0-rc.15",
+    "prisma": "^7.10.0",
     "tailwindcss": "^4.3.3",
     "vite": "^8.2.2"
   }
