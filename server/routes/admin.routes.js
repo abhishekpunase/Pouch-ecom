@@ -13,6 +13,7 @@ router.post('/settings', requireAdmin, (req, res) => {
   const requestedKeys = Object.keys(patch)
   const allowedKeys = new Set([
     'ADMIN_PASSWORD',
+    'MARQUEE_ITEMS',
     'RAZORPAY_KEY_ID',
     'RAZORPAY_KEY_SECRET',
     'SHIPROCKET_EMAIL',
@@ -21,7 +22,7 @@ router.post('/settings', requireAdmin, (req, res) => {
     'SHIPROCKET_PICKUP_LOCATION',
   ])
   if (!requestedKeys.length || requestedKeys.some((key) => !allowedKeys.has(key))) {
-    return res.status(400).json({ error: 'Only password, Razorpay, and Shiprocket settings can be updated' })
+    return res.status(400).json({ error: 'Only password, marquee, Razorpay, and Shiprocket settings can be updated' })
   }
 
   const next = Object.fromEntries(requestedKeys.map((key) => [key, String(patch[key] ?? '').trim()]))
