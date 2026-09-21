@@ -14,6 +14,7 @@ const DEFAULTS = {
   ADMIN_SESSION_SECRET: 'apna-packaging-change-me-in-production',
   MARQUEE_ITEMS: '["Free shipping above ₹8,000","Bulk packs · 50 to 1000 pcs","Pouches · Boxes · Labels"]',
   SUPABASE_SERVICE_ROLE_KEY: '',
+  SUPABASE_SECRET_KEY: '',
   RAZORPAY_KEY_ID: '',
   RAZORPAY_KEY_SECRET: '',
   SHIPROCKET_EMAIL: '',
@@ -78,7 +79,8 @@ export function loadEnvFromFile() {
     if (key === 'ADMIN_SESSION_SECRET') {
       process.env.ADMIN_SESSION_SECRET = String(fallbackValues.ADMIN_SESSION_SECRET || DEFAULTS.ADMIN_SESSION_SECRET)
     }
-    if (key === 'SUPABASE_SERVICE_ROLE_KEY') process.env.SUPABASE_SERVICE_ROLE_KEY = String(fallbackValues.SUPABASE_SERVICE_ROLE_KEY || '')
+    if (key === 'SUPABASE_SERVICE_ROLE_KEY') process.env.SUPABASE_SERVICE_ROLE_KEY = String(fallbackValues.SUPABASE_SERVICE_ROLE_KEY || fallbackValues.SUPABASE_SECRET_KEY || '')
+    if (key === 'SUPABASE_SECRET_KEY') process.env.SUPABASE_SECRET_KEY = String(fallbackValues.SUPABASE_SECRET_KEY || fallbackValues.SUPABASE_SERVICE_ROLE_KEY || '')
     if (key === 'RAZORPAY_KEY_ID') process.env.RAZORPAY_KEY_ID = String(fallbackValues.RAZORPAY_KEY_ID || '')
     if (key === 'RAZORPAY_KEY_SECRET') process.env.RAZORPAY_KEY_SECRET = String(fallbackValues.RAZORPAY_KEY_SECRET || '')
     if (key === 'SHIPROCKET_EMAIL') process.env.SHIPROCKET_EMAIL = String(fallbackValues.SHIPROCKET_EMAIL || '')
@@ -94,6 +96,8 @@ export function loadEnvFromFile() {
   PICKUP_PIN = makeValue('SHIPROCKET_PICKUP_PINCODE', process.env.SHIPROCKET_PICKUP_PINCODE || fileValues.SHIPROCKET_PICKUP_PINCODE || DEFAULTS.SHIPROCKET_PICKUP_PINCODE)
   PICKUP_LOCATION = makeValue('SHIPROCKET_PICKUP_LOCATION', process.env.SHIPROCKET_PICKUP_LOCATION || fileValues.SHIPROCKET_PICKUP_LOCATION || DEFAULTS.SHIPROCKET_PICKUP_LOCATION)
   MARQUEE_ITEMS = makeValue('MARQUEE_ITEMS', process.env.MARQUEE_ITEMS || fileValues.MARQUEE_ITEMS || DEFAULTS.MARQUEE_ITEMS)
+  SUPABASE_SERVICE_ROLE_KEY = makeValue('SUPABASE_SERVICE_ROLE_KEY', process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || fileValues.SUPABASE_SERVICE_ROLE_KEY || fileValues.SUPABASE_SECRET_KEY || '')
+  SUPABASE_SECRET_KEY = makeValue('SUPABASE_SECRET_KEY', process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || fileValues.SUPABASE_SECRET_KEY || fileValues.SUPABASE_SERVICE_ROLE_KEY || '')
   ADMIN_EMAIL = makeValue('ADMIN_EMAIL', process.env.ADMIN_EMAIL || fileValues.ADMIN_EMAIL || DEFAULTS.ADMIN_EMAIL).toLowerCase()
   ADMIN_PASSWORD = makeValue('ADMIN_PASSWORD', process.env.ADMIN_PASSWORD || fileValues.ADMIN_PASSWORD || DEFAULTS.ADMIN_PASSWORD)
   SESSION_SECRET = makeValue('ADMIN_SESSION_SECRET', process.env.ADMIN_SESSION_SECRET || fileValues.ADMIN_SESSION_SECRET || DEFAULTS.ADMIN_SESSION_SECRET)
@@ -127,7 +131,8 @@ export let ADMIN_EMAIL = String(process.env.ADMIN_EMAIL || process.env.VITE_ADMI
   .toLowerCase()
 export let ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.VITE_ADMIN_PASSWORD || 'admin123'
 export let SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || 'apna-packaging-change-me-in-production'
-export let SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+export let SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+export let SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || ''
 
 export function refreshEnvConfig() {
   loadEnvFromFile()
