@@ -1,12 +1,12 @@
 import { Router } from 'express'
 import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '../middleware/auth.js'
-import { SUPABASE_SERVICE_ROLE_KEY } from '../config/env.js'
+import { SUPABASE_SERVICE_ROLE_KEY, SUPABASE_URL } from '../config/env.js'
 
 const router = Router()
 
 function supportClient() {
-  const url = process.env.VITE_SUPABASE_URL
+  const url = SUPABASE_URL
   if (!url || !SUPABASE_SERVICE_ROLE_KEY) throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for admin support')
   return createClient(url, SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
 }

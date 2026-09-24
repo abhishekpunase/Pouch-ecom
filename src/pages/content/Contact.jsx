@@ -3,6 +3,7 @@ import { Mail, MapPin, Phone } from 'lucide-react'
 import { toast } from 'sonner'
 import { SITE } from '@/data/catalog'
 import { sendContactMessage } from '@/services/supabase'
+import { sendContactEmail } from '@/services/api'
 
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' })
@@ -17,6 +18,7 @@ export default function Contact() {
     setSending(true)
     try {
       await sendContactMessage(form)
+      await sendContactEmail(form).catch((error) => toast.warning(error.message || 'Email delivery is not configured yet'))
       toast.success('Message sent. We will get back to you shortly.')
       setForm({ name: '', email: '', phone: '', message: '' })
     } catch (err) {

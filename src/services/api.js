@@ -68,6 +68,21 @@ export async function updateAdminSettings(payload) {
   return readJson(r)
 }
 
+export async function sendAdminTestEmail() {
+  const r = await fetch(`${API}/admin/mail/test`, { method: 'POST', headers: adminAuthHeaders() })
+  return readJson(r)
+}
+
+export async function sendContactEmail(payload) {
+  const r = await fetch(`${API}/mail/contact`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+  return readJson(r)
+}
+
+export async function sendOrderEmail(order) {
+  const r = await fetch(`${API}/mail/order`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(order) })
+  return readJson(r)
+}
+
 export async function fetchAdminCoupons() {
   const r = await fetch(`${API}/admin/coupons`, { headers: adminAuthHeaders() })
   return readJson(r)

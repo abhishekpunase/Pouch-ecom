@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -k \"npm run dev:api\" \"npm run dev:web\"",
+    "dev": "npm run dev:clean && concurrently -k \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:clean": "node scripts/clean-dev-ports.mjs",
     "dev:web": "vite",
     "dev:api": "node server/index.js",
     "build": "vite build",
@@ -22,6 +23,7 @@
     "express": "^5.2.1",
     "lucide-react": "^1.38.0",
     "multer": "^2.3.0",
+    "nodemailer": "^10.0.10",
     "razorpay": "^2.9.8",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

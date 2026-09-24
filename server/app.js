@@ -8,6 +8,7 @@ import shippingRoutes from './routes/shipping.routes.js'
 import uploadRoutes from './routes/upload.routes.js'
 import supportRoutes from './routes/support.routes.js'
 import couponsRoutes from './routes/coupons.routes.js'
+import mailRoutes from './routes/mail.routes.js'
 
 export function createApp() {
   const app = express()
@@ -22,6 +23,7 @@ export function createApp() {
   app.use('/api/upload', uploadRoutes)
   app.use('/api/shiprocket', shippingRoutes)
   app.use('/api', paymentsRoutes)
+  app.use('/api/mail', mailRoutes)
 
   return app
 }

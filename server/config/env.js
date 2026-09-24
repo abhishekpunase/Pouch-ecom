@@ -16,10 +16,20 @@ const DEFAULTS = {
   COUPONS: '[]',
   SUPABASE_SERVICE_ROLE_KEY: '',
   SUPABASE_SECRET_KEY: '',
+  SUPABASE_URL: '',
   RAZORPAY_KEY_ID: '',
   RAZORPAY_KEY_SECRET: '',
   SHIPROCKET_EMAIL: '',
   SHIPROCKET_PASSWORD: '',
+  GMAIL_USER: '',
+  GMAIL_APP_PASSWORD: '',
+  SMTP_HOST: '',
+  SMTP_PORT: '587',
+  SMTP_USER: '',
+  SMTP_PASSWORD: '',
+  SMTP_ENCRYPTION: 'TLS',
+  MAIL_FROM: '',
+  MAIL_FROM_NAME: 'Apna Packaging',
   SHIPROCKET_PICKUP_PINCODE: '110020',
   SHIPROCKET_PICKUP_LOCATION: 'Home',
 }
@@ -82,10 +92,20 @@ export function loadEnvFromFile() {
     }
     if (key === 'SUPABASE_SERVICE_ROLE_KEY') process.env.SUPABASE_SERVICE_ROLE_KEY = String(fallbackValues.SUPABASE_SERVICE_ROLE_KEY || fallbackValues.SUPABASE_SECRET_KEY || '')
     if (key === 'SUPABASE_SECRET_KEY') process.env.SUPABASE_SECRET_KEY = String(fallbackValues.SUPABASE_SECRET_KEY || fallbackValues.SUPABASE_SERVICE_ROLE_KEY || '')
+    if (key === 'SUPABASE_URL') process.env.SUPABASE_URL = String(fallbackValues.SUPABASE_URL || '')
     if (key === 'RAZORPAY_KEY_ID') process.env.RAZORPAY_KEY_ID = String(fallbackValues.RAZORPAY_KEY_ID || '')
     if (key === 'RAZORPAY_KEY_SECRET') process.env.RAZORPAY_KEY_SECRET = String(fallbackValues.RAZORPAY_KEY_SECRET || '')
     if (key === 'SHIPROCKET_EMAIL') process.env.SHIPROCKET_EMAIL = String(fallbackValues.SHIPROCKET_EMAIL || '')
     if (key === 'SHIPROCKET_PASSWORD') process.env.SHIPROCKET_PASSWORD = String(fallbackValues.SHIPROCKET_PASSWORD || '')
+    if (key === 'GMAIL_USER') process.env.GMAIL_USER = String(fallbackValues.GMAIL_USER || '')
+    if (key === 'GMAIL_APP_PASSWORD') process.env.GMAIL_APP_PASSWORD = String(fallbackValues.GMAIL_APP_PASSWORD || '')
+    if (key === 'SMTP_HOST') process.env.SMTP_HOST = String(fallbackValues.SMTP_HOST || '')
+    if (key === 'SMTP_PORT') process.env.SMTP_PORT = String(fallbackValues.SMTP_PORT || DEFAULTS.SMTP_PORT)
+    if (key === 'SMTP_USER') process.env.SMTP_USER = String(fallbackValues.SMTP_USER || '')
+    if (key === 'SMTP_PASSWORD') process.env.SMTP_PASSWORD = String(fallbackValues.SMTP_PASSWORD || '')
+    if (key === 'SMTP_ENCRYPTION') process.env.SMTP_ENCRYPTION = String(fallbackValues.SMTP_ENCRYPTION || DEFAULTS.SMTP_ENCRYPTION)
+    if (key === 'MAIL_FROM') process.env.MAIL_FROM = String(fallbackValues.MAIL_FROM || '')
+    if (key === 'MAIL_FROM_NAME') process.env.MAIL_FROM_NAME = String(fallbackValues.MAIL_FROM_NAME || DEFAULTS.MAIL_FROM_NAME)
     if (key === 'SHIPROCKET_PICKUP_PINCODE') process.env.SHIPROCKET_PICKUP_PINCODE = String(fallbackValues.SHIPROCKET_PICKUP_PINCODE || DEFAULTS.SHIPROCKET_PICKUP_PINCODE)
     if (key === 'SHIPROCKET_PICKUP_LOCATION') process.env.SHIPROCKET_PICKUP_LOCATION = String(fallbackValues.SHIPROCKET_PICKUP_LOCATION || DEFAULTS.SHIPROCKET_PICKUP_LOCATION)
   }
@@ -94,6 +114,15 @@ export function loadEnvFromFile() {
   RAZORPAY_KEY_SECRET = makeValue('RAZORPAY_KEY_SECRET', process.env.RAZORPAY_KEY_SECRET || fileValues.RAZORPAY_KEY_SECRET || '')
   SHIPROCKET_EMAIL = makeValue('SHIPROCKET_EMAIL', process.env.SHIPROCKET_EMAIL || fileValues.SHIPROCKET_EMAIL || '')
   SHIPROCKET_PASSWORD = makeValue('SHIPROCKET_PASSWORD', process.env.SHIPROCKET_PASSWORD || fileValues.SHIPROCKET_PASSWORD || '')
+  GMAIL_USER = makeValue('GMAIL_USER', process.env.GMAIL_USER || fileValues.GMAIL_USER || '')
+  GMAIL_APP_PASSWORD = makeValue('GMAIL_APP_PASSWORD', process.env.GMAIL_APP_PASSWORD || fileValues.GMAIL_APP_PASSWORD || '')
+  SMTP_HOST = makeValue('SMTP_HOST', process.env.SMTP_HOST || fileValues.SMTP_HOST || (GMAIL_USER ? 'smtp.gmail.com' : ''))
+  SMTP_PORT = makeValue('SMTP_PORT', process.env.SMTP_PORT || fileValues.SMTP_PORT || DEFAULTS.SMTP_PORT)
+  SMTP_USER = makeValue('SMTP_USER', process.env.SMTP_USER || fileValues.SMTP_USER || GMAIL_USER)
+  SMTP_PASSWORD = makeValue('SMTP_PASSWORD', process.env.SMTP_PASSWORD || fileValues.SMTP_PASSWORD || GMAIL_APP_PASSWORD)
+  SMTP_ENCRYPTION = makeValue('SMTP_ENCRYPTION', process.env.SMTP_ENCRYPTION || fileValues.SMTP_ENCRYPTION || DEFAULTS.SMTP_ENCRYPTION).toUpperCase()
+  MAIL_FROM = makeValue('MAIL_FROM', process.env.MAIL_FROM || fileValues.MAIL_FROM || SMTP_USER)
+  MAIL_FROM_NAME = makeValue('MAIL_FROM_NAME', process.env.MAIL_FROM_NAME || fileValues.MAIL_FROM_NAME || DEFAULTS.MAIL_FROM_NAME)
   PICKUP_PIN = makeValue('SHIPROCKET_PICKUP_PINCODE', process.env.SHIPROCKET_PICKUP_PINCODE || fileValues.SHIPROCKET_PICKUP_PINCODE || DEFAULTS.SHIPROCKET_PICKUP_PINCODE)
   PICKUP_LOCATION = makeValue('SHIPROCKET_PICKUP_LOCATION', process.env.SHIPROCKET_PICKUP_LOCATION || fileValues.SHIPROCKET_PICKUP_LOCATION || DEFAULTS.SHIPROCKET_PICKUP_LOCATION)
   MARQUEE_ITEMS = makeValue('MARQUEE_ITEMS', process.env.MARQUEE_ITEMS || fileValues.MARQUEE_ITEMS || DEFAULTS.MARQUEE_ITEMS)
@@ -123,6 +152,15 @@ export let razorpayReady = Boolean(RAZORPAY_KEY_ID && RAZORPAY_KEY_SECRET)
 
 export let SHIPROCKET_EMAIL = process.env.SHIPROCKET_EMAIL || ''
 export let SHIPROCKET_PASSWORD = process.env.SHIPROCKET_PASSWORD || ''
+export let GMAIL_USER = process.env.GMAIL_USER || ''
+export let GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || ''
+export let SMTP_HOST = process.env.SMTP_HOST || ''
+export let SMTP_PORT = process.env.SMTP_PORT || '587'
+export let SMTP_USER = process.env.SMTP_USER || process.env.GMAIL_USER || ''
+export let SMTP_PASSWORD = process.env.SMTP_PASSWORD || process.env.GMAIL_APP_PASSWORD || ''
+export let SMTP_ENCRYPTION = process.env.SMTP_ENCRYPTION || 'TLS'
+export let MAIL_FROM = process.env.MAIL_FROM || process.env.SMTP_USER || process.env.GMAIL_USER || ''
+export let MAIL_FROM_NAME = process.env.MAIL_FROM_NAME || 'Apna Packaging'
 export let PICKUP_PIN = process.env.SHIPROCKET_PICKUP_PINCODE || '110020'
 export let PICKUP_LOCATION = process.env.SHIPROCKET_PICKUP_LOCATION || 'Home'
 export let MARQUEE_ITEMS = process.env.MARQUEE_ITEMS || '["Free shipping above ₹8,000","Bulk packs · 50 to 1000 pcs","Pouches · Boxes · Labels"]'
@@ -136,12 +174,23 @@ export let ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.VITE_ADMIN
 export let SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || 'apna-packaging-change-me-in-production'
 export let SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 export let SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || ''
+export let SUPABASE_URL = process.env.SUPABASE_URL || ''
 
 export function refreshEnvConfig() {
   loadEnvFromFile()
   razorpayReady = Boolean(RAZORPAY_KEY_ID && RAZORPAY_KEY_SECRET)
   shiprocketReady = Boolean(SHIPROCKET_EMAIL && SHIPROCKET_PASSWORD)
+  GMAIL_USER = String(process.env.GMAIL_USER || '')
+  GMAIL_APP_PASSWORD = String(process.env.GMAIL_APP_PASSWORD || '')
+  SMTP_HOST = String(process.env.SMTP_HOST || (GMAIL_USER ? 'smtp.gmail.com' : ''))
+  SMTP_PORT = String(process.env.SMTP_PORT || '587')
+  SMTP_USER = String(process.env.SMTP_USER || GMAIL_USER)
+  SMTP_PASSWORD = String(process.env.SMTP_PASSWORD || GMAIL_APP_PASSWORD)
+  SMTP_ENCRYPTION = String(process.env.SMTP_ENCRYPTION || 'TLS').toUpperCase()
+  MAIL_FROM = String(process.env.MAIL_FROM || SMTP_USER)
+  MAIL_FROM_NAME = String(process.env.MAIL_FROM_NAME || 'Apna Packaging')
   SUPABASE_SERVICE_ROLE_KEY = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '')
+  SUPABASE_URL = String(process.env.SUPABASE_URL || '')
 }
 
 export function getEnvSnapshot() {
@@ -154,6 +203,18 @@ export function getEnvSnapshot() {
     RAZORPAY_KEY_SECRET,
     SHIPROCKET_EMAIL,
     SHIPROCKET_PASSWORD,
+    GMAIL_USER,
+    GMAIL_APP_PASSWORD: '',
+    GMAIL_CONFIGURED: Boolean(GMAIL_USER && GMAIL_APP_PASSWORD),
+    SMTP_HOST,
+    SMTP_PORT,
+    SMTP_USER,
+    SMTP_PASSWORD: '',
+    SMTP_ENCRYPTION,
+    MAIL_FROM,
+    MAIL_FROM_NAME,
+    SMTP_CONFIGURED: Boolean(SMTP_HOST && SMTP_USER && SMTP_PASSWORD),
+    SUPABASE_URL,
     SHIPROCKET_PICKUP_PINCODE: PICKUP_PIN,
     SHIPROCKET_PICKUP_LOCATION: PICKUP_LOCATION,
     API_PORT: PORT,

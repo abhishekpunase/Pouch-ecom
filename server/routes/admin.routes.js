@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { randomUUID } from 'node:crypto'
 import { ADMIN_EMAIL, ADMIN_PASSWORD, COUPONS, getEnvSnapshot, updateEnvFile } from '../config/env.js'
 import { clearLoginHits, loginRateLimited, requireAdmin, signAdminToken, timingEqual, verifyAdminToken } from '../middleware/auth.js'
+import { sendTestEmail } from '../services/mailer.service.js'
 
 const router = Router()
 
@@ -28,16 +29,28 @@ router.post('/settings', requireAdmin, (req, res) => {
     'RAZORPAY_KEY_SECRET',
     'SHIPROCKET_EMAIL',
     'SHIPROCKET_PASSWORD',
+    'GMAIL_USER',
+    'GMAIL_APP_PASSWORD',
+    'SMTP_HOST',
+    'SMTP_PORT',
+    'SMTP_USER',
+    'SMTP_PASSWORD',
+    'SMTP_ENCRYPTION',
+    'MAIL_FROM',
+    'MAIL_FROM_NAME',
     'SHIPROCKET_PICKUP_PINCODE',
     'SHIPROCKET_PICKUP_LOCATION',
   ])
   if (!requestedKeys.length || requestedKeys.some((key) => !allowedKeys.has(key))) {
-    return res.status(400).json({ error: 'Only password, marquee, Razorpay, and Shiprocket settings can be updated' })
+    return res.status(400).json({ error: 'Only password, marquee, Razorpay, Shiprocket, and SMTP settings can be updated' })
   }
 
   const next = Object.fromEntries(requestedKeys.map((key) => [key, String(patch[key] ?? '').trim()]))
   if ('ADMIN_PASSWORD' in next && next.ADMIN_PASSWORD.length < 8) {
     return res.status(400).json({ error: 'Admin password must be at least 8 characters' })
+  }
+  if ('SMTP_PORT' in next && (!/^\d+$/.test(next.SMTP_PORT) || Number(next.SMTP_PORT) < 1 || Number(next.SMTP_PORT) > 65535)) {
+    return res.status(400).json({ error: 'SMTP port must be a number between 1 and 65535' })
   }
 
   try {
@@ -45,6 +58,15 @@ router.post('/settings', requireAdmin, (req, res) => {
     res.json({ ok: true, settings: saved })
   } catch (error) {
     res.status(500).json({ error: error.message || 'Could not update settings' })
+  }
+})
+
+router.post('/mail/test', requireAdmin, async (_req, res) => {
+  try {
+    await sendTestEmail()
+    res.json({ ok: true })
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'Could not send test email' })
   }
 })
 

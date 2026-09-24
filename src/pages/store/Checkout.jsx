@@ -12,6 +12,7 @@ import {
   fetchShipRates,
   loadRazorpayScript,
   verifyRazorpayPayment,
+  sendOrderEmail,
 } from '@/services/api'
 
 export default function Checkout() {
@@ -171,6 +172,7 @@ export default function Checkout() {
         },
         ...payment,
       })
+      sendOrderEmail(order).catch(() => {})
       clear()
       navigate('/order-success', { replace: true, state: { order } })
     } catch (err) {
