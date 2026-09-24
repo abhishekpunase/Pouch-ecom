@@ -3,13 +3,14 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useAuth } from '@/context/AuthContext'
 import { SITE } from '@/data/catalog'
+import { isValidPhone, normalizePhone } from '@/services/profile'
 
 export default function Auth({ mode }) {
   const isSignUp = mode === 'sign-up'
   const { signIn, signUp, user } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const [form, setForm] = useState({ name: '', email: '', password: '' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' })
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
@@ -20,7 +21,10 @@ export default function Auth({ mode }) {
     e.preventDefault()
     setBusy(true)
     try {
-      if (isSignUp) await signUp(form.email, form.password, form.name)
+      if (isSignUp) {
+        if (!isValidPhone(form.phone)) throw new Error('Enter a valid 10-digit mobile number')
+        await signUp(form.email, form.password, form.name, normalizePhone(form.phone))
+      }
       else await signIn(form.email, form.password)
       toast.success(isSignUp ? 'Account created' : 'Signed in')
       navigate(location.state?.from || '/account')
@@ -45,6 +49,22 @@ export default function Auth({ mode }) {
               required
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="mt-1 w-full rounded-xl border px-4 py-2.5"
+            />
+          </>
+        )}
+        {isSignUp && (
+          <>
+            <label className="mt-4 block text-sm font-medium">Mobile number</label>
+            <input
+              required
+              type="tel"
+              inputMode="numeric"
+              autoComplete="tel"
+              maxLength={10}
+              placeholder="10-digit mobile number"
+              value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
               className="mt-1 w-full rounded-xl border px-4 py-2.5"
             />
           </>

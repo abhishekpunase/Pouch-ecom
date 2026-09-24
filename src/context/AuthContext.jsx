@@ -34,9 +34,9 @@ export function AuthProvider({ children }) {
     () => ({
       user,
       loading,
-      async signUp(email, password, fullName) {
+      async signUp(email, password, fullName, phone = '') {
         if (!isSupabaseConfigured) {
-          const demo = { id: 'local', email, user_metadata: { full_name: fullName } }
+          const demo = { id: 'local', email, user_metadata: { full_name: fullName, phone } }
           localStorage.setItem('pi-user', JSON.stringify(demo))
           setUser(demo)
           return { user: demo }
@@ -44,7 +44,7 @@ export function AuthProvider({ children }) {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: fullName } },
+          options: { data: { full_name: fullName, phone } },
         })
         if (error) throw error
         return data
